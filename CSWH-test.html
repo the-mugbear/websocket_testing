@@ -31,11 +31,20 @@
     <script>
         let ws; // Make websocket variable accessible to all functions
 
-        function logMessage(message, type = 'info') {
+        function logMessage(message, type = 'info', isRawHtml = false) {
             const logDiv = document.getElementById('log');
             const color = type === 'error' ? 'red' : (type === 'success' ? 'green' : 'black');
-            logDiv.innerHTML += `<p style="color: ${color}; margin: 2px 0; font-family: monospace;">[${new Date().toLocaleTimeString()}] ${message}</p>`;
+            const time = `[${new Date().toLocaleTimeString()}]`;
+            if (isRawHtml) {
+                logDiv.innerHTML += `<div style="color: ${color}; margin: 2px 0; font-family: monospace;">${time} ${message}</div>`;
+            } else {
+                logDiv.innerHTML += `<p style="color: ${color}; margin: 2px 0; font-family: monospace;">${time} ${message}</p>`;
+            }
             logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function copyToInput(text) {
+            document.getElementById('ws-data').value = text;
         }
 
         function startTest() {
@@ -46,7 +55,7 @@
             }
 
             logMessage(`Attempting to connect to: ${url}`);
-            
+
             // Create a new WebSocket connection
             ws = new WebSocket(url);
 
@@ -63,7 +72,19 @@
             };
 
             ws.onmessage = function(event) {
-                logMessage(`RECEIVED: ${event.data}`);
+                const messageData = event.data;
+                let formattedMessage = `RECEIVED: ${messageData}`;
+                try {
+                    // Try to parse as JSON for pretty printing
+                    const jsonData = JSON.parse(messageData);
+                    formattedMessage = `RECEIVED: <pre style="display: inline; white-space: pre-wrap;">${JSON.stringify(jsonData, null, 2)}</pre>`;
+                } catch (e) {
+                    // Not JSON, just display as is
+                }
+
+                // Add a button to copy the raw data to the input field
+                const copyButton = `<button onclick='copyToInput(${JSON.stringify(messageData)})'>Copy & Modify</button>`;
+                logMessage(`${formattedMessage} <br> ${copyButton}`, 'info', true);
             };
 
             ws.onclose = function(event) {

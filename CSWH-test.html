@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSWH Vulnerability Test with Data Sending</title>
+</head>
+<body>
+    <h1>Cross-Site WebSocket Hijacking (CSWH) Test</h1>
+    <p>This page attempts to connect to a WebSocket endpoint and then send data to test for vulnerabilities.</p>
+
+    <div>
+        <label for="ws-url">WebSocket URL:</label>
+        <input type="text" id="ws-url" size="50" placeholder="e.g., wss://yourapp.com/socket">
+        <button onclick="startTest()">Connect</button>
+    </div>
+
+    <hr>
+
+    <h2>Send Data</h2>
+    <p>This section will be enabled after a successful connection.</p>
+    <div>
+        <label for="ws-data">Message:</label>
+        <input type="text" id="ws-data" size="50" placeholder='e.g., {"action":"delete","userId":123}' disabled>
+        <button id="send-btn" onclick="sendData()" disabled>Send Data</button>
+    </div>
+
+    <hr>
+
+    <h2>Test Log</h2>
+    <div id="log" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; background-color: #f9f9f9;"></div>
+
+    <script>
+        let ws; // Make websocket variable accessible to all functions
+
+        function logMessage(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const color = type === 'error' ? 'red' : (type === 'success' ? 'green' : 'black');
+            logDiv.innerHTML += `<p style="color: ${color}; margin: 2px 0; font-family: monospace;">[${new Date().toLocaleTimeString()}] ${message}</p>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function startTest() {
+            const url = document.getElementById('ws-url').value;
+            if (!url) {
+                logMessage('Please enter a WebSocket URL.', 'error');
+                return;
+            }
+
+            logMessage(`Attempting to connect to: ${url}`);
+            
+            // Create a new WebSocket connection
+            ws = new WebSocket(url);
+
+            ws.onopen = function(event) {
+                logMessage('SUCCESS: Connection established!', 'success');
+                logMessage('Your application may be VULNERABLE to CSWH.');
+                // Enable the data sending section
+                document.getElementById('ws-data').disabled = false;
+                document.getElementById('send-btn').disabled = false;
+            };
+
+            ws.onerror = function(event) {
+                logMessage('ERROR: An error occurred with the WebSocket connection.', 'error');
+            };
+
+            ws.onmessage = function(event) {
+                logMessage(`RECEIVED: ${event.data}`);
+            };
+
+            ws.onclose = function(event) {
+                let reason = `Code: ${event.code}, Reason: ${event.reason || 'No reason given'}`;
+                logMessage(`INFO: Connection closed. ${reason}`);
+                // Disable the data sending section on close
+                document.getElementById('ws-data').disabled = true;
+                document.getElementById('send-btn').disabled = true;
+            };
+        }
+
+        function sendData() {
+            const data = document.getElementById('ws-data').value;
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                logMessage('WebSocket is not connected.', 'error');
+                return;
+            }
+            if (!data) {
+                logMessage('Please enter a message to send.', 'error');
+                return;
+            }
+            ws.send(data);
+            logMessage(`SENT: ${data}`);
+        }
+    </script>
+</body>
+</html>

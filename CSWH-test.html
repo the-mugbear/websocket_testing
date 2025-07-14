@@ -2,55 +2,238 @@
 <html>
 <head>
     <title>CSWH Vulnerability Test with Data Sending</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #00ff00;
+            --accent-color: #00ffff;
+            --error-color: #ff0000;
+            --success-color: #00ff00;
+            --border-color: #008888;
+            --input-bg: #1a1a1a;
+            --input-text: #00ff00;
+            --button-bg: #005555;
+            --button-hover-bg: #00aaaa;
+            --log-bg: #111111;
+            --log-border: #004444;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 95vh;
+            box-sizing: border-box;
+        }
+
+        h1, h2 {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--accent-color);
+            text-shadow: 0 0 5px var(--accent-color), 0 0 10px var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: #1a1a1a;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 0 15px var(--border-color);
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--accent-color);
+        }
+
+        input[type="text"], textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-radius: 4px;
+            box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: 1px solid var(--accent-color);
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            text-transform: uppercase;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: var(--button-hover-bg);
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        button:disabled {
+            background-color: #333;
+            color: #888;
+            border-color: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px dashed var(--border-color);
+            margin: 30px 0;
+            width: 100%;
+        }
+
+        #log {
+            border: 2px solid var(--log-border);
+            padding: 15px;
+            height: 350px;
+            overflow-y: scroll;
+            background-color: var(--log-bg);
+            color: var(--text-color);
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        #log p, #log div {
+            margin: 5px 0;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .log-info { color: var(--text-color); }
+        .log-error { color: var(--error-color); }
+        .log-success { color: var(--success-color); }
+
+        .copy-button {
+            background-color: #003333;
+            border: 1px solid #008888;
+            padding: 5px 10px;
+            font-size: 10px;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .copy-button:hover {
+            background-color: #005555;
+        }
+
+        pre {
+            display: inline;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .button-group {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Cross-Site WebSocket Hijacking (CSWH) Test</h1>
-    <p>This page attempts to connect to a WebSocket endpoint and then send data to test for vulnerabilities.</p>
-
-    <div>
-        <label for="ws-url">WebSocket URL:</label>
-        <input type="text" id="ws-url" size="50" placeholder="e.g., wss://yourapp.com/socket">
-        <button onclick="startTest()">Connect</button>
+    <h1>CSWH Test Console</h1>
+    <div class="container">
+        <h2>Connection Setup</h2>
+        <div>
+            <label for="ws-url">WebSocket URL:</label>
+            <input type="text" id="ws-url" size="50" placeholder="e.g., wss://yourapp.com/socket" value="ws://localhost:8080">
+            <button onclick="startTest()">Connect</button>
+        </div>
     </div>
 
-    <hr>
-
-    <h2>Send Data</h2>
-    <p>This section will be enabled after a successful connection.</p>
-    <div>
-        <label for="ws-data">Message:</label>
-        <input type="text" id="ws-data" size="50" placeholder='e.g., {"action":"delete","userId":123}' disabled>
-        <button id="send-btn" onclick="sendData()" disabled>Send Data</button>
+    <div class="container">
+        <h2>Inject Traffic</h2>
+        <p>This section will be enabled after a successful connection.</p>
+        <div>
+            <label for="ws-data">Message to Send:</label>
+            <textarea id="ws-data" placeholder='e.g., {"action":"delete","userId":123}' disabled></textarea>
+            <div class="button-group">
+                <button id="send-btn" onclick="sendData()" disabled>Send Data</button>
+                <button onclick="formatJson()">Format JSON</button>
+                <button onclick="clearData()">Clear</button>
+            </div>
+        </div>
     </div>
 
-    <hr>
-
-    <h2>Test Log</h2>
-    <div id="log" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; background-color: #f9f9f9;"></div>
+    <div class="container">
+        <h2>Activity Log</h2>
+        <div id="log"></div>
+    </div>
 
     <script>
         let ws; // Make websocket variable accessible to all functions
 
         function logMessage(message, type = 'info', isRawHtml = false) {
             const logDiv = document.getElementById('log');
-            const color = type === 'error' ? 'red' : (type === 'success' ? 'green' : 'black');
+            const typeClass = `log-${type}`;
             const time = `[${new Date().toLocaleTimeString()}]`;
             if (isRawHtml) {
-                logDiv.innerHTML += `<div style="color: ${color}; margin: 2px 0; font-family: monospace;">${time} ${message}</div>`;
+                logDiv.innerHTML += `<div class="${typeClass}" style="margin: 2px 0;">${time} ${message}</div>`;
             } else {
-                logDiv.innerHTML += `<p style="color: ${color}; margin: 2px 0; font-family: monospace;">${time} ${message}</p>`;
+                logDiv.innerHTML += `<p class="${typeClass}" style="margin: 2px 0;">${time} ${message}</p>`;
             }
             logDiv.scrollTop = logDiv.scrollHeight;
         }
 
         function copyToInput(text) {
             document.getElementById('ws-data').value = text;
+            logMessage('Copied message to input for modification.', 'info');
+        }
+
+        function formatJson() {
+            const dataInput = document.getElementById('ws-data');
+            try {
+                const parsed = JSON.parse(dataInput.value);
+                dataInput.value = JSON.stringify(parsed, null, 2);
+                logMessage('Formatted JSON.', 'info');
+            } catch (e) {
+                logMessage('Invalid JSON, cannot format.', 'error');
+            }
+        }
+
+        function clearData() {
+            document.getElementById('ws-data').value = '';
+            logMessage('Cleared message input.', 'info');
         }
 
         function startTest() {
             const url = document.getElementById('ws-url').value;
             if (!url) {
                 logMessage('Please enter a WebSocket URL.', 'error');
+                return;
+            }
+
+            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+                logMessage('Already connected or connecting. Please close current connection first if you want to connect to a new URL.', 'info');
                 return;
             }
 
@@ -61,14 +244,15 @@
 
             ws.onopen = function(event) {
                 logMessage('SUCCESS: Connection established!', 'success');
-                logMessage('Your application may be VULNERABLE to CSWH.');
+                logMessage('Your application may be VULNERABLE to CSWH.', 'info');
                 // Enable the data sending section
                 document.getElementById('ws-data').disabled = false;
                 document.getElementById('send-btn').disabled = false;
             };
 
             ws.onerror = function(event) {
-                logMessage('ERROR: An error occurred with the WebSocket connection.', 'error');
+                logMessage('ERROR: An error occurred with the WebSocket connection. Check console for details.', 'error');
+                console.error('WebSocket Error:', event);
             };
 
             ws.onmessage = function(event) {
@@ -77,19 +261,19 @@
                 try {
                     // Try to parse as JSON for pretty printing
                     const jsonData = JSON.parse(messageData);
-                    formattedMessage = `RECEIVED: <pre style="display: inline; white-space: pre-wrap;">${JSON.stringify(jsonData, null, 2)}</pre>`;
+                    formattedMessage = `RECEIVED: <pre>${JSON.stringify(jsonData, null, 2)}</pre>`;
                 } catch (e) {
                     // Not JSON, just display as is
                 }
 
                 // Add a button to copy the raw data to the input field
-                const copyButton = `<button onclick='copyToInput(${JSON.stringify(messageData)})'>Copy & Modify</button>`;
-                logMessage(`${formattedMessage} <br> ${copyButton}`, 'info', true);
+                const copyButton = `<button class="copy-button" onclick='copyToInput(${JSON.stringify(messageData)})'>Copy & Modify</button>`;
+                logMessage(`${formattedMessage} ${copyButton}`, 'info', true);
             };
 
             ws.onclose = function(event) {
                 let reason = `Code: ${event.code}, Reason: ${event.reason || 'No reason given'}`;
-                logMessage(`INFO: Connection closed. ${reason}`);
+                logMessage(`INFO: Connection closed. ${reason}`, 'info');
                 // Disable the data sending section on close
                 document.getElementById('ws-data').disabled = true;
                 document.getElementById('send-btn').disabled = true;
@@ -102,13 +286,21 @@
                 logMessage('WebSocket is not connected.', 'error');
                 return;
             }
-            if (!data) {
+            if (!data.trim()) {
                 logMessage('Please enter a message to send.', 'error');
                 return;
             }
             ws.send(data);
-            logMessage(`SENT: ${data}`);
+            logMessage(`SENT: ${data}`, 'info');
         }
+
+        // Set a default URL for convenience
+        document.addEventListener('DOMContentLoaded', () => {
+            const defaultUrl = 'ws://localhost:8080'; // Example default
+            if (!document.getElementById('ws-url').value) {
+                document.getElementById('ws-url').value = defaultUrl;
+            }
+        });
     </script>
 </body>
 </html>
